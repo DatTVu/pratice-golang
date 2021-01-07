@@ -7,14 +7,14 @@ import (
 	"log"
 )
 
-type HardwareInfo struct {
-	VCPU   float64
-	VRAM   float64
-	Counts float64
+type hardwareInfo struct {
+	vCPU   float64
+	vRAM   float64
+	counts float64
 }
 
 func main() {
-	var instance_map = make(map[string]HardwareInfo)
+	var instance_map = make(map[string]hardwareInfo)
 	var result map[string]interface{}
 	content, err := ioutil.ReadFile("config.json")
 
@@ -28,10 +28,10 @@ func main() {
 		vCPU := val.(map[string]interface{})["vCPU"]
 		vRam := val.(map[string]interface{})["vRam"]
 		counts := val.(map[string]interface{})["counts"]
-		instance_map[instanceType.(string)] = HardwareInfo{
-			VCPU:   vCPU.(float64),
-			VRAM:   vRam.(float64),
-			Counts: counts.(float64),
+		instance_map[instanceType.(string)] = hardwareInfo{
+			vCPU:   vCPU.(float64),
+			vRAM:   vRam.(float64),
+			counts: counts.(float64),
 		}
 	}
 	fmt.Println(instance_map)
