@@ -2,38 +2,88 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"regexp"
 
-	"github.com/DatTVu/pratice-golang/react_app_ver_2/backend/pkg/websocket"
+	"github.com/gorilla/websocket"
 )
 
-func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
-	fmt.Println("WebSocket Endpoint Hit")
-	conn, err := websocket.Upgrade(w, r)
+// We'll need to define an Upgrader
+// this will require a Read and Write buffer size
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+
+	// We'll need to check the origin of our connection
+	// this will allow us to make requests from our React
+	// development server to here.
+	// For now, we'll do no checking and just allow any connection
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
+
+// define a reader which will listen for
+// new messages being sent to our WebSocket
+// endpoint
+func parseArgs(s string) {
+	if len(s) <= 0 {
+		//log.Println("Empty String")
+		return
+	}
+	zp := regexp.MustCompile("[\\s]+")
+	fmt.Printf("%q\n", zp.Split(s, -1))
+}
+
+func createTerrafomConfig([]string) {
+	//TO-DO consider to sudo
+	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+}
+
+func reader(conn *websocket.Conn) {
+	for {
+		// read in a message
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		parseArgs(string(p))
+
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			log.Println(err)
+			return
+		}
+
+	}
+}
+
+// define our WebSocket endpoint
+func serveWs(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.Host)
+
+	// upgrade this connection to a WebSocket
+	// connection
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Fprintf(w, "%+v\n", err)
+		log.Println(err)
 	}
-
-	client := &websocket.Client{
-		Conn: conn,
-		Pool: pool,
-	}
-
-	pool.Register <- client
-	client.Read()
+	// listen indefinitely for new messages coming
+	// through on our WebSocket connection
+	reader(ws)
 }
 
 func setupRoutes() {
-	pool := websocket.NewPool()
-	go pool.Start()
-
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(pool, w, r)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Simple Server")
 	})
+	// mape our `/ws` endpoint to the `serveWs` function
+	http.HandleFunc("/ws", serveWs)
 }
 
 func main() {
-	fmt.Println("Distributed Chat App v0.01")
+	fmt.Println("Chat App v0.01")
 	setupRoutes()
 	http.ListenAndServe(":8080", nil)
 }
