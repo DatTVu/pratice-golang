@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"os/exec"
 	"regexp"
 
 	"github.com/gorilla/websocket"
@@ -32,12 +32,29 @@ func parseArgs(s string) {
 		return
 	}
 	zp := regexp.MustCompile("[\\s]+")
-	fmt.Printf("%q\n", zp.Split(s, -1))
+	testCommandArray := zp.Split(s, -1)
+	for _, val := range testCommandArray {
+		fmt.Printf("%T \t", val)
+		fmt.Println(val)
+	}
+	if testCommandArray[0] == "firefox" {
+		execCommand()
+	}
 }
 
 func createTerrafomConfig([]string) {
 	//TO-DO consider to sudo
-	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+	//var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+}
+
+func execCommand() {
+	cmd := exec.Command("firefox")
+
+	err := cmd.Run()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func reader(conn *websocket.Conn) {
