@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 
+	"github.com/DatTVu/pratice-golang/react_app_ver_2/backend/pkg/config"
 	"github.com/gorilla/websocket"
 )
 
@@ -101,6 +102,7 @@ func setupRoutes() {
 
 func main() {
 	fmt.Println("Chat App v0.01")
+	config.InitCommands()
 	setupRoutes()
 	http.ListenAndServe(":8080", nil)
 }
