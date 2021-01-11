@@ -69,6 +69,11 @@ func reader(conn *websocket.Conn) {
 
 		parseArgs(string(p))
 
+		if val, ok := config.Commands[string(p)]; ok {
+			fmt.Printf("%T\n", val)
+			fmt.Println(val)
+		}
+
 		if err := conn.WriteMessage(messageType, p); err != nil {
 			log.Println(err)
 			return
