@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"os/exec"
+	"fmt"
 )
 
 //Commands is a map that hold all
@@ -21,18 +22,23 @@ type ProvisionContextCommand struct {
 func (c *ProvisionContextCommand) Run(args []string) int {
 	cmd := exec.Command("cd")
 	cmd.Run()
+	fmt.Println("[Config]: cd Done")
 	cmd = exec.Command("pwd")
 	cmd.Run()
+	fmt.Println("[Config]: pwd Done")
 	path, _ := cmd.CombinedOutput()
 	realPath := string(path) + "/Projects"
 	if _, err := os.Stat(realPath); os.IsNotExist(err) {
 		cmd = exec.Command("mkdir Projects")
 		cmd.Run()
+		fmt.Println("[Config]: mkdir Done")
 	}
 	cmd = exec.Command("cd Projects")
 	cmd.Run()
+	fmt.Println("[Config]: cd Done")
 	cmd = exec.Command("touch config.tf")
 	cmd.Run()
+	fmt.Println("[Config]: touch Done")
 
 	configString :=
 		`terraform {
@@ -55,14 +61,16 @@ func (c *ProvisionContextCommand) Run(args []string) int {
 	}`
 
 	f, _ := os.Create("config.tf")
-
+	fmt.Println("[Config]: config Done")
 	f.WriteString(configString)
 	f.Close()
 	cmd = exec.Command("terraform init")
 	cmd.Run()
+	fmt.Println("[Config]: terraform init Done")
 
 	cmd = exec.Command("terraform apply")
 	cmd.Run()
+	fmt.Println("[Config]: terraform init apply Done")
 
 	return 1
 }
