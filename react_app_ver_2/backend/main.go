@@ -27,20 +27,12 @@ var upgrader = websocket.Upgrader{
 // define a reader which will listen for
 // new messages being sent to our WebSocket
 // endpoint
-func parseArgs(s string) {
+func parseArgs(s string) []string {
 	if len(s) <= 0 {
-		//log.Println("Empty String")
-		return
+		return nil
 	}
 	zp := regexp.MustCompile("[\\s]+")
-	testCommandArray := zp.Split(s, -1)
-	for _, val := range testCommandArray {
-		fmt.Printf("%T \t", val)
-		fmt.Println(val)
-	}
-	if testCommandArray[0] == "firefox" {
-		execCommand()
-	}
+	return zp.Split(s, -1)
 }
 
 func createTerrafomConfig([]string) {
@@ -67,11 +59,10 @@ func reader(conn *websocket.Conn) {
 			return
 		}
 
-		parseArgs(string(p))
-
 		if val, ok := config.Commands[string(p)]; ok {
 			fmt.Printf("%T\n", val)
 			fmt.Println(val)
+			val().Run(parseArgs(string(p)))
 		}
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
