@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
-	"fmt"
+	"path/filepath"
 )
 
 //Commands is a map that hold all
@@ -19,34 +21,30 @@ type ProvisionContextCommand struct {
 	Name string
 }
 
-func (c *ProvisionContextCommand) Run(args []string) int {
-	cmd := exec.Command("cd")
-	cmd.Run()
-	fmt.Println("[Config]: cd Done")
-	cmd = exec.Command("pwd")
-	cmd.Run()
-	fmt.Println("[Config]: pwd Done")
-	path, _ := cmd.CombinedOutput()
-	realPath := string(path) + "/Projects"
-	if _, err := os.Stat(realPath); os.IsNotExist(err) {
-		cmd = exec.Command("mkdir Projects")
-		cmd.Run()
-		fmt.Println("[Config]: mkdir Done")
+func chkErr(e error) {
+	if e != nil {
+		fmt.Println("[Config][Terraform][Error]: ", e)
 	}
-	cmd = exec.Command("cd Projects")
-	cmd.Run()
-	fmt.Println("[Config]: cd Done")
-	cmd = exec.Command("touch config.tf")
-	cmd.Run()
-	fmt.Println("[Config]: touch Done")
+}
 
-	configString :=
-		`terraform {
+func (c *ProvisionContextCommand) Run(args []string) int {
+	fmt.Println("[Config][Terraform]: Provision Starting")
+	directoryPath := filepath.Join("/home/dat-vu/Projects/TerraformTest")
+	fmt.Println(directoryPath)
+	if _, err := os.Stat(directoryPath); os.IsNotExist(err) {
+		fmt.Println("[Config][Terraform][Info]: Directory does not exist! Creating a directory for the project now in ", directoryPath)
+		err1 := os.MkdirAll(directoryPath, os.ModePerm)
+		chkErr(err1)
+		fmt.Println("[Config][Terraform][Info]: mkdir Done")
+	}
+	configFilePath := directoryPath + "/config.tf"
+	fmt.Println("[Config][Terraform][Info]: Creating config file in ", configFilePath)
+	configString := `terraform { 
 		required_providers {
-		  aws = {
-			source  = "hashicorp/aws"
-			version = "~> 2.70"
-		  }
+			aws = {
+				source  = "hashicorp/aws"
+				version = "~> 2.70"
+			}
 		}
 	}
 
@@ -60,18 +58,26 @@ func (c *ProvisionContextCommand) Run(args []string) int {
 		instance_type = "t2.micro"
 	}`
 
-	f, _ := os.Create("config.tf")
-	fmt.Println("[Config]: config Done")
+	f, _ := os.Create(configFilePath)
 	f.WriteString(configString)
 	f.Close()
-	cmd = exec.Command("terraform init")
-	cmd.Run()
-	fmt.Println("[Config]: terraform init Done")
+	fmt.Println("[Config][Terraform][Info]: Config file created!")
+	cmd := exec.Command("terraform", "init")
+	cmd.Dir = directoryPath
+	if err := cmd.Start(); err != nil {
+		log.Printf("Failed to start cmd: %v", err)
+	}
 
-	cmd = exec.Command("terraform apply")
-	cmd.Run()
-	fmt.Println("[Config]: terraform init apply Done")
-
+	if err1 := cmd.Wait(); err1 != nil {
+		log.Printf("Cmd returned error: %v", err1)
+	} else {
+		fmt.Println("[Config][Terraform][Info]: terraform init Done")
+		cmd = exec.Command("terraform", "apply", "-auto-approve")
+		cmd.Dir = directoryPath
+		err2 := cmd.Run()
+		chkErr(err2)
+		fmt.Println("[Config][Terraform][Info]: terraform init apply Done")
+	}
 	return 1
 }
 

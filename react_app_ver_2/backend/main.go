@@ -60,8 +60,6 @@ func reader(conn *websocket.Conn) {
 		}
 
 		if val, ok := config.Commands[string(p)]; ok {
-			fmt.Printf("%T\n", val)
-			fmt.Println(val)
 			test := parseArgs(string(p))
 			fmt.Println("[Reader]: Parsing Done")
 			val().Run(test)
