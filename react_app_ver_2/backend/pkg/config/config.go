@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -67,10 +68,12 @@ func (c *ProvisionContextCommand) Run(args []string) int {
 	if err := cmd.Start(); err != nil {
 		log.Printf("Failed to start cmd: %v", err)
 	}
-
+	var outb bytes.Buffer
+	cmd.Stdout = &outb
 	if err1 := cmd.Wait(); err1 != nil {
 		log.Printf("Cmd returned error: %v", err1)
 	} else {
+		fmt.Println(outb.String())
 		fmt.Println("[Config][Terraform][Info]: terraform init Done")
 		cmd = exec.Command("terraform", "apply", "-auto-approve")
 		cmd.Dir = directoryPath
