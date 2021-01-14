@@ -24,7 +24,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-//var ch := make(chan error)
+var ch := make(chan bytes.Buffer)
 // define a reader which will listen for
 // new messages being sent to our WebSocket
 // endpoint
@@ -34,11 +34,6 @@ func parseArgs(s string) []string {
 	}
 	zp := regexp.MustCompile("[\\s]+")
 	return zp.Split(s, -1)
-}
-
-func createTerrafomConfig([]string) {
-	//TO-DO consider to sudo
-	//var file, err = os.OpenFile(path, os.O_RDWR, 0644)
 }
 
 func execCommand() {
@@ -67,7 +62,7 @@ func reader(conn *websocket.Conn) {
 		}
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
-			//result := <-ch
+			result := <-ch
 			log.Println(err)
 			return
 		}

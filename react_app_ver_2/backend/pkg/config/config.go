@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -65,23 +66,60 @@ func (c *ProvisionContextCommand) Run(args []string) int {
 	fmt.Println("[Config][Terraform][Info]: Config file created!")
 	cmd := exec.Command("terraform", "init")
 	cmd.Dir = directoryPath
-	if err := cmd.Start(); err != nil {
-		log.Printf("Failed to start cmd: %v", err)
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("init.Run() failed with %s\n", err)
 	}
-	var outb bytes.Buffer
-	cmd.Stdout = &outb
-	if err1 := cmd.Wait(); err1 != nil {
-		log.Printf("Cmd returned error: %v", err1)
-	} else {
-		fmt.Println(outb.String())
-		fmt.Println("[Config][Terraform][Info]: terraform init Done")
-		cmd = exec.Command("terraform", "apply", "-auto-approve")
-		cmd.Dir = directoryPath
-		err2 := cmd.Run()
-		chkErr(err2)
-		fmt.Println("[Config][Terraform][Info]: terraform init apply Done")
-	}
+
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	fmt.Printf("\nout:\n%s\nerr:\n%s\n", outStr, errStr)
+	// if err := cmd.Start(); err != nil {
+	// 	log.Printf("Failed to start cmd: %v", err)
+	// }
+	// if err1 := cmd.Wait(); err1 != nil {
+	// 	log.Printf("Cmd returned error: %v", err1)
+	// } else {
+	// 	fmt.Println("----------------------------")
+	// 	cmd = exec.Command("ls", "-la")
+	// 	out, _ := cmd.Output()
+	// 	fmt.Println(string(out))
+	// 	fmt.Println("----------------------------")
+	// 	fmt.Println("[Config][Terraform][Info]: terraform init Done")
+	// 	//cmd = exec.Command("terraform", "apply", "-auto-approve")
+	// 	//cmd.Dir = directoryPath
+	// 	//err2 := cmd.Run()
+	// 	//chkErr(err2)
+	// 	//fmt.Println("[Config][Terraform][Info]: terraform init apply Done")
+	// }
 	return 1
+}
+
+func copyAndCapture(w io.Writer, r io.Reader) ([]byte, error) {
+	var out []byte
+	buf := make([]byte, 1024, 1024)
+	for {
+		n, err := r.Read(buf[:])
+		if n > 0 {
+			d := buf[:n]
+			out = append(out, d...)
+			_, err := w.Write(d)
+			if err != nil {
+				return out, err
+			}
+		}
+		if err != nil {
+			// Read returns io.EOF at the end of file, which is not an error for us
+			if err == io.EOF {
+				err = nil
+			}
+			return out, err
+		}
+	}
 }
 
 type DestroyContextCommand struct {
