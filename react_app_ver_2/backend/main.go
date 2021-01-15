@@ -24,7 +24,8 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-var ch := make(chan bytes.Buffer)
+//var ch = make(chan bytes.Buffer)
+
 // define a reader which will listen for
 // new messages being sent to our WebSocket
 // endpoint
@@ -62,7 +63,7 @@ func reader(conn *websocket.Conn) {
 		}
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
-			result := <-ch
+			//result := <-ch
 			log.Println(err)
 			return
 		}

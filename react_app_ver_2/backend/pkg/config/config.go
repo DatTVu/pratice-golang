@@ -71,31 +71,25 @@ func (c *ProvisionContextCommand) Run(args []string) int {
 	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
-	err := cmd.Run()
+	err := cmd.Start()
 	if err != nil {
 		log.Fatalf("init.Run() failed with %s\n", err)
 	}
 
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	fmt.Printf("\nout:\n%s\nerr:\n%s\n", outStr, errStr)
-	// if err := cmd.Start(); err != nil {
-	// 	log.Printf("Failed to start cmd: %v", err)
-	// }
-	// if err1 := cmd.Wait(); err1 != nil {
-	// 	log.Printf("Cmd returned error: %v", err1)
-	// } else {
-	// 	fmt.Println("----------------------------")
-	// 	cmd = exec.Command("ls", "-la")
-	// 	out, _ := cmd.Output()
-	// 	fmt.Println(string(out))
-	// 	fmt.Println("----------------------------")
-	// 	fmt.Println("[Config][Terraform][Info]: terraform init Done")
-	// 	//cmd = exec.Command("terraform", "apply", "-auto-approve")
-	// 	//cmd.Dir = directoryPath
-	// 	//err2 := cmd.Run()
-	// 	//chkErr(err2)
-	// 	//fmt.Println("[Config][Terraform][Info]: terraform init apply Done")
-	// }
+	if err1 := cmd.Wait(); err1 != nil {
+		log.Printf("Cmd init returned error: %v", err1)
+	} else {
+		fmt.Println("[Config][Terraform][Info]: terraform init Done")
+		cmd = exec.Command("terraform", "apply", "-auto-approve")
+		cmd.Dir = directoryPath
+		cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+		cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+		err2 := cmd.Run()
+		chkErr(err2)
+		fmt.Println("[Config][Terraform][Info]: terraform init apply Done")
+	}
 	return 1
 }
 
