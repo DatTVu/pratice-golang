@@ -3,7 +3,7 @@ import "./Header.scss";
 
 const Header = () => (
   <div className="header">
-    <h2>Cloud Managemnet Platform</h2>
+    <h2>Cloud Management Platform</h2>
   </div>
 );
 

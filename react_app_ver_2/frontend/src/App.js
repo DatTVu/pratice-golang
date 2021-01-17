@@ -33,11 +33,15 @@ class App extends Component {
 
   render() {
     return (
+      
       <div className="App">
         <Header />
-        <ChatHistory chatHistory={this.state.chatHistory} />
-        <ChatInput send={this.send}/>
+        <div class="flexbox-container">
+          <div class="flexbox-chathistory"><ChatHistory chatHistory={this.state.chatHistory} /></div>
+          <div class="flexbox-chatinput"><ChatInput send={this.send}/></div>
+        </div>
       </div>
+   
     );
   }
 }

@@ -24,28 +24,17 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
+//var ch = make(chan bytes.Buffer)
+
 // define a reader which will listen for
 // new messages being sent to our WebSocket
 // endpoint
-func parseArgs(s string) {
+func parseArgs(s string) []string {
 	if len(s) <= 0 {
-		//log.Println("Empty String")
-		return
+		return nil
 	}
 	zp := regexp.MustCompile("[\\s]+")
-	testCommandArray := zp.Split(s, -1)
-	for _, val := range testCommandArray {
-		fmt.Printf("%T \t", val)
-		fmt.Println(val)
-	}
-	if testCommandArray[0] == "firefox" {
-		execCommand()
-	}
-}
-
-func createTerrafomConfig([]string) {
-	//TO-DO consider to sudo
-	//var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+	return zp.Split(s, -1)
 }
 
 func execCommand() {
@@ -67,14 +56,14 @@ func reader(conn *websocket.Conn) {
 			return
 		}
 
-		parseArgs(string(p))
-
 		if val, ok := config.Commands[string(p)]; ok {
-			fmt.Printf("%T\n", val)
-			fmt.Println(val)
+			test := parseArgs(string(p))
+			fmt.Println("[Reader]: Parsing Done")
+			val().Run(test)
 		}
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
+			//result := <-ch
 			log.Println(err)
 			return
 		}
