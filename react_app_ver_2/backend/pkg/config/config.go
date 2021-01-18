@@ -52,11 +52,11 @@ func (c *ProvisionContextCommand) Run(args []string) int {
 
 	provider "aws" {
 		profile = "default"
-		region  = "us-west-2"
+		region  = "ap-southeast-1"
 	}
 
 	resource "aws_instance" "example" {
-		ami           = "ami-830c94e3"
+		ami           = "ami-00b8d9cb8a7161e41"
 		instance_type = "t2.micro"
 	}`
 
@@ -93,34 +93,39 @@ func (c *ProvisionContextCommand) Run(args []string) int {
 	return 1
 }
 
-func copyAndCapture(w io.Writer, r io.Reader) ([]byte, error) {
-	var out []byte
-	buf := make([]byte, 1024, 1024)
-	for {
-		n, err := r.Read(buf[:])
-		if n > 0 {
-			d := buf[:n]
-			out = append(out, d...)
-			_, err := w.Write(d)
-			if err != nil {
-				return out, err
-			}
-		}
-		if err != nil {
-			// Read returns io.EOF at the end of file, which is not an error for us
-			if err == io.EOF {
-				err = nil
-			}
-			return out, err
-		}
-	}
-}
-
 type DestroyContextCommand struct {
 	Name string
 }
 
 func (c *DestroyContextCommand) Run(args []string) int {
+	fmt.Println("[Config][Terraform]: Destroying Instances")
+	directoryPath := filepath.Join("/home/dat-vu/Projects/TerraformTest")
+	if _, err := os.Stat(directoryPath); os.IsNotExist(err) {
+		fmt.Println("[Config][Terraform][Info]: Directory does not exist! Creating a directory for the project now in ", directoryPath)
+		err1 := os.MkdirAll(directoryPath, os.ModePerm)
+		chkErr(err1)
+		fmt.Println("[Config][Terraform][Info]: mkdir Done")
+	}
+
+	cmd := exec.Command("terraform", "destroy", "-auto-approve")
+	cmd.Dir = directoryPath
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
+	err := cmd.Start()
+	if err != nil {
+		log.Fatalf("Destroy.Run() failed with %s\n", err)
+	}
+
+	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
+	fmt.Printf("\nout:\n%s\nerr:\n%s\n", outStr, errStr)
+	if err1 := cmd.Wait(); err1 != nil {
+		log.Printf("Cmd init returned error: %v", err1)
+	} else {
+		fmt.Println("[Config][Terraform][Info]: terraform destroy done")
+	}
 	return 1
 }
 
