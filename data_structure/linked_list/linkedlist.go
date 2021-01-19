@@ -207,14 +207,130 @@ func (l *LinkedList) ValueAt(index int) (result int) {
 }
 
 func (l *LinkedList) Reverse() {
-
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	var curPtr, nextPtr, prevPtr *node
+	curPtr = l.headptr
+	for curPtr != nil {
+		if curPtr.next != nil {
+			nextPtr = curPtr.next
+			curPtr.next = prevPtr
+			prevPtr = curPtr
+			curPtr = nextPtr
+		} else {
+			break
+		}
+	}
+	l.headptr = curPtr
 }
 
 // Find an element in list and return boolean
-// Find an element in list by index and return it
+func (l *LinkedList) Exist(val int) (result bool) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	var curPtr *node = l.headptr
+	for curPtr != nil {
+		if curPtr.next != nil && curPtr.value != val {
+			curPtr = curPtr.next
+		} else if curPtr.value == val {
+			result = true
+			break
+		} else {
+			break
+		}
+	}
+	return result
+}
+
 // Count how many times a key show up in list
+func (l *LinkedList) FindFrequency(val int) (result int) {
+	var curPtr *node = l.headptr
+	for curPtr != nil {
+		if curPtr.next != nil {
+			if curPtr.value == val {
+				result++
+			}
+			curPtr = curPtr.next
+		} else {
+			break
+		}
+	}
+	return result
+}
+
 // Detect if a list has been loop
+func (l *LinkedList) IsLoop() (res bool) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	var addressMap map[*int]int = make(map[*int]int)
+	var curPtr *node = l.headptr
+	for curPtr != nil {
+		addressMap[&curPtr.value]++
+		if addressMap[&curPtr.value] > 1 {
+			res = true
+			break
+		}
+		curPtr = curPtr.next
+	}
+	return res
+}
+
 // Check if single linked list is palindrome
+func (l *LinkedList) IsPalindrome() (res bool) {
+	l.mutex.Lock()
+	var valueSlice []int = make([]int, l.size)
+	defer l.mutex.Unlock()
+	var curPtr *node = l.headptr
+	var idx int = 0
+	for curPtr != nil {
+		valueSlice[idx] = curPtr.value
+		curPtr = curPtr.next
+		idx++
+	}
+
+	for curPtr != nil {
+		if curPtr.value != valueSlice[idx] {
+			res = false
+			break
+		} else {
+			curPtr = curPtr.next
+			idx--
+		}
+	}
+	return res
+}
+
 // Remove duplicate element in list (sorted)
-// Remove duplicate element in list (unsorted)
-// Remove duplicate element in list (unsorted)
+func (l *LinkedList) RemoveDuplicateSorted() {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	var curPtr *node = l.headptr
+	for curPtr != nil {
+		if curPtr.next != nil {
+			if curPtr.value == curPtr.next.value {
+				if curPtr.next.next != nil {
+					curPtr.next = curPtr.next.next
+					curPtr = curPtr.next
+				} else {
+					curPtr.next = nil
+				}
+			}
+		} else {
+			break
+		}
+	}
+}
+
+// Remove duplicate element in list (unsorted) recursively
+func (l *LinkedList) RemovedDuplicateUnsortedRecursive() {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+}
+
+// Remove duplicate element in list (unsorted) iteratively
+
+func (l *LinkedList) RemoveDuplicateUnsortedIteratively() {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+}
