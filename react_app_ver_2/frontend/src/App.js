@@ -1,9 +1,10 @@
+// App.js
 import React, { Component } from "react";
 import "./App.css";
 import { connect, sendMsg } from "./api";
 import Header from './components/Header/Header';
-import ChatHistory from "./components/ChatHistory/ChatHistory";
-import ChatInput from "./components/ChatInput/ChatInput";
+import ChatHistory from './components/ChatHistory/ChatHistory';
+import ChatInput from './components/ChatInput/ChatInput';
 
 class App extends Component {
   constructor(props) {
@@ -11,21 +12,20 @@ class App extends Component {
     this.state = {
       chatHistory: []
     }
-    connect();
   }
 
-  componentDidMount(){
-    connect((msg)=>{
+  componentDidMount() {
+    connect((msg) => {
       console.log("New Message")
       this.setState(prevState => ({
         chatHistory: [...this.state.chatHistory, msg]
       }))
-      console.log(this.state)
+      console.log(this.state);
     });
   }
 
   send(event) {
-    if(event.keyCode === 13){
+    if(event.keyCode ===13){
       sendMsg(event.target.value);
       event.target.value = "";
     }
@@ -33,11 +33,15 @@ class App extends Component {
 
   render() {
     return (
+      
       <div className="App">
         <Header />
-        <ChatHistory chatHistory={this.state.chatHistory} />
-        <ChatInput send={this.send} />
+        <div class="flexbox-container">
+          <div class="flexbox-chathistory"><ChatHistory chatHistory={this.state.chatHistory} /></div>
+          <div class="flexbox-chatinput"><ChatInput send={this.send}/></div>
+        </div>
       </div>
+   
     );
   }
 }
