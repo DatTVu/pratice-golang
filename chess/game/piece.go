@@ -4,6 +4,28 @@ import (
 	"strings"
 )
 
+var knightMoves = []BoardPos{
+	{Row: 2, Col: 1},
+	{Row: 2, Col: -1},
+	{Row: -2, Col: 1},
+	{Row: -2, Col: -1},
+	{Row: 1, Col: 2},
+	{Row: -1, Col: 2},
+	{Row: 1, Col: -2},
+	{Row: -1, Col: -2},
+}
+
+var kingMoves = []BoardPos{
+	{Row: 2, Col: 1},
+	{Row: 2, Col: 1},
+	{Row: 2, Col: 1},
+	{Row: 2, Col: 1},
+	{Row: 2, Col: 1},
+	{Row: 2, Col: 1},
+	{Row: 2, Col: 1},
+	{Row: 2, Col: 1},
+}
+
 //String representation of piece
 const (
 	WhiteKing = "\u2654"
@@ -26,17 +48,18 @@ const (
 )
 
 type Piece struct {
-	boardpos BoardPos
-	sign     string
-	player   Player
+	boardpos  BoardPos
+	sign      string
+	player    Player
+	firstMove bool
 }
 
 type BoardPos struct {
-	row uint8
-	col uint8
+	Row int
+	Col int
 }
 
-func createPiece(sign string, row uint8, col uint8) Piece {
+func createPiece(sign string, row int, col int) Piece {
 	var player Player
 	if sign == strings.ToUpper(sign) {
 		player = Black
@@ -46,8 +69,8 @@ func createPiece(sign string, row uint8, col uint8) Piece {
 
 	return Piece{
 		boardpos: BoardPos{
-			row: row,
-			col: col,
+			Row: row,
+			Col: col,
 		},
 		sign:   sign,
 		player: player,
@@ -106,23 +129,101 @@ func (p *Piece) getQueenMoves() []BoardPos {
 
 func (p *Piece) getBishopMoves() []BoardPos {
 	var moves []BoardPos
+	for i := p.boardpos.Col; i > 0; i-- {
+		for j := p.boardpos.Row; j > 0; j-- {
+			pos := BoardPos{
+				Row: p.boardpos.Row,
+				Col: p.boardpos.Col,
+			}
+			if board[int(p.boardpos.Row)][int(p.boardpos.Col)] == Empty {
+				moves = append(moves, pos)
+			} else if canMove(p.player, pos) {
+				moves = append(moves, pos)
+				break
+			} else {
+				break
+			}
+		}
+	}
+
+	for i := p.boardpos.Col; i < boardSize; i++ {
+		for j := p.boardpos.Row; j < boardSize; j++ {
+			pos := BoardPos{
+				Row: p.boardpos.Row,
+				Col: p.boardpos.Col,
+			}
+			if board[int(p.boardpos.Row)][int(p.boardpos.Col)] == Empty {
+				moves = append(moves, pos)
+			} else if canMove(p.player, pos) {
+				moves = append(moves, pos)
+				break
+			} else {
+				break
+			}
+		}
+	}
+	for i := p.boardpos.Col; i > 0; i-- {
+		for j := p.boardpos.Row; j < boardSize; j++ {
+			pos := BoardPos{
+				Row: p.boardpos.Row,
+				Col: p.boardpos.Col,
+			}
+			if board[int(p.boardpos.Row)][int(p.boardpos.Col)] == Empty {
+				moves = append(moves, pos)
+			} else if canMove(p.player, pos) {
+				moves = append(moves, pos)
+				break
+			} else {
+				break
+			}
+		}
+	}
+	for i := p.boardpos.Col; i < boardSize; i++ {
+		for j := p.boardpos.Row; j > 0; j-- {
+			pos := BoardPos{
+				Row: p.boardpos.Row,
+				Col: p.boardpos.Col,
+			}
+			if board[int(p.boardpos.Row)][int(p.boardpos.Col)] == Empty {
+				moves = append(moves, pos)
+			} else if canMove(p.player, pos) {
+				moves = append(moves, pos)
+				break
+			} else {
+				break
+			}
+		}
+	}
 	return moves
 }
 
 func (p *Piece) getKnightMoves() []BoardPos {
 	var moves []BoardPos
+	for _, pos := range knightMoves {
+		pos := BoardPos{
+			Row: p.boardpos.Row + pos.Row,
+			Col: p.boardpos.Col + pos.Col,
+		}
+		if (pos.Row < 8 && pos.Row > 0) && (pos.Col > 0 && pos.Col < 8) {
+			if board[pos.Row][pos.Row] == Empty {
+				moves = append(moves, pos)
+			} else if canMove(p.player, pos) {
+				moves = append(moves, pos)
+			}
+		}
+	}
 	return moves
 }
 
 func (p *Piece) getRookMoves() []BoardPos {
 	var moves []BoardPos
 	//Move to the left
-	for i := p.boardpos.col; i > 0; i-- {
+	for i := p.boardpos.Col; i > 0; i-- {
 		pos := BoardPos{
-			row: p.boardpos.row,
-			col: i,
+			Row: p.boardpos.Row,
+			Col: i,
 		}
-		if board[p.boardpos.row][i] == Empty {
+		if board[int(p.boardpos.Row)][i] == Empty {
 			moves = append(moves, pos)
 		} else if canMove(p.player, pos) {
 			moves = append(moves, pos)
@@ -132,12 +233,12 @@ func (p *Piece) getRookMoves() []BoardPos {
 		}
 	}
 	//Move to the right
-	for i := p.boardpos.col; i <= 8; i++ {
+	for i := p.boardpos.Col; i <= boardSize; i++ {
 		pos := BoardPos{
-			row: p.boardpos.row,
-			col: i,
+			Row: p.boardpos.Row,
+			Col: i,
 		}
-		if board[p.boardpos.row][i] == Empty {
+		if board[int(p.boardpos.Row)][i] == Empty {
 			moves = append(moves, pos)
 		} else if canMove(p.player, pos) {
 			moves = append(moves, pos)
@@ -147,12 +248,12 @@ func (p *Piece) getRookMoves() []BoardPos {
 		}
 	}
 	//Move up
-	for i := p.boardpos.row; i <= 8; i++ {
+	for i := p.boardpos.Row; i <= boardSize; i++ {
 		pos := BoardPos{
-			row: i,
-			col: p.boardpos.col,
+			Row: i,
+			Col: p.boardpos.Col,
 		}
-		if board[i][p.boardpos.col] == Empty {
+		if board[i][int(p.boardpos.Col)] == Empty {
 			moves = append(moves, pos)
 		} else if canMove(p.player, pos) {
 			moves = append(moves, pos)
@@ -162,12 +263,12 @@ func (p *Piece) getRookMoves() []BoardPos {
 		}
 	}
 	//Move down
-	for i := p.boardpos.row; i > 0; i-- {
+	for i := p.boardpos.Row; i > 0; i-- {
 		pos := BoardPos{
-			row: i,
-			col: p.boardpos.col,
+			Row: i,
+			Col: p.boardpos.Col,
 		}
-		if board[i][p.boardpos.col] == Empty {
+		if board[i][int(p.boardpos.Col)] == Empty {
 			moves = append(moves, pos)
 		} else if canMove(p.player, pos) {
 			moves = append(moves, pos)
@@ -180,7 +281,34 @@ func (p *Piece) getRookMoves() []BoardPos {
 }
 
 func (p *Piece) getPawnMoves() []BoardPos {
+	//Possible moves for white pawn:
+	//w,b = current pos of white/black pawn, x = possible, 0 = impossible
+	//0 x 0  |  0 b 0
+	//x x x  |  x x x
+	//0 w 0  |  0 x 0
 	var moves []BoardPos
+	var val int
+	if p.player == White {
+		val = 1
+	} else if p.player == Black {
+		val = -1
+	}
+
+	if board[p.boardpos.Row+val][p.boardpos.Col] == Empty {
+		moves = append(moves, BoardPos{p.boardpos.Row + val, p.boardpos.Col})
+		if (board[p.boardpos.Row+2*val][p.boardpos.Col] == Empty) && p.firstMove {
+			moves = append(moves, BoardPos{p.boardpos.Row + 2*val, p.boardpos.Col})
+		}
+	}
+
+	if canMove(p.player, BoardPos{p.boardpos.Row + val, p.boardpos.Col + 1}) {
+		moves = append(moves, BoardPos{p.boardpos.Row + val, p.boardpos.Col + 1})
+	}
+
+	if canMove(p.player, BoardPos{p.boardpos.Row + val, p.boardpos.Col - 1}) {
+		moves = append(moves, BoardPos{p.boardpos.Row + val, p.boardpos.Col - 1})
+	}
+
 	return moves
 }
 
