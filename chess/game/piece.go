@@ -15,17 +15,6 @@ var knightMoves = []BoardPos{
 	{Row: -1, Col: -2},
 }
 
-var kingMoves = []BoardPos{
-	{Row: 2, Col: 1},
-	{Row: 2, Col: 1},
-	{Row: 2, Col: 1},
-	{Row: 2, Col: 1},
-	{Row: 2, Col: 1},
-	{Row: 2, Col: 1},
-	{Row: 2, Col: 1},
-	{Row: 2, Col: 1},
-}
-
 //String representation of piece
 const (
 	WhiteKing = "\u2654"
@@ -116,6 +105,17 @@ func (p *Piece) String() string {
 
 func (p *Piece) getKingMoves() []BoardPos {
 	var moves []BoardPos
+	for i:= 0; i< boardSize; i++{
+		for j:=0; j<boardSize; j++{
+			
+			if(i==p.boardpos.Row &&j==p.boardpos.Col){
+				continue
+			} else if (){
+				
+			}
+
+		}
+	}
 	//moves.append(moves, )
 	return moves
 }
