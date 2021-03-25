@@ -16,10 +16,7 @@ func NewVector() *Vector {
 	return &Vector{kData: make([]int, 0, kDefaultCapacity)}
 }
 
-func NewVectorWithCapacity(capacity int) (*Vector, error) {
-	if capacity%2 != 0 {
-		return nil, errors.New("[ERROR] Please use power of two for capacity")
-	}
+func NewVectorWithCapacity(capacity uint) (*Vector, error) {
 	return &Vector{kData: make([]int, 0, capacity)}, nil
 }
 
