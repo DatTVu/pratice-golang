@@ -2,6 +2,7 @@ package vector
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -13,11 +14,11 @@ type Vector struct {
 }
 
 func NewVector() *Vector {
-	return &Vector{kData: make([]int, 0, kDefaultCapacity)}
+	return &Vector{kData: make([]int, kDefaultCapacity, kDefaultCapacity)}
 }
 
 func NewVectorWithCapacity(capacity uint) (*Vector, error) {
-	return &Vector{kData: make([]int, 0, capacity)}, nil
+	return &Vector{kData: make([]int, capacity, capacity)}, nil
 }
 
 func (vec *Vector) Size() int {
@@ -55,8 +56,11 @@ func (vec *Vector) At(idx int) (int, error) {
 func (vec *Vector) Push(val int) {
 	vec.mutex.Lock()
 	defer vec.mutex.Unlock()
-	if len(vec.kData) >= cap(vec.kData) {
+	if len(vec.kData) > cap(vec.kData) {
+		cnt := 0
+		fmt.Println("Resizing for %d", cnt)
 		vec.resize()
+		cnt+
 	}
 	vec.kData[len(vec.kData)-1] = val
 }
@@ -67,7 +71,7 @@ func (vec *Vector) Insert(val int, idx int) error {
 	if val < 0 {
 		return errors.New("[ERROR] Out of Range!")
 	}
-	if len(vec.kData) >= cap(vec.kData) {
+	if len(vec.kData) > cap(vec.kData) {
 		vec.resize()
 	}
 	for i := len(vec.kData); i > idx; i-- {
